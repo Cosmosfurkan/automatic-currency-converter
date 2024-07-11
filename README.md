@@ -62,7 +62,6 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
 
 This project is a currency converter application built using Python and Tkinter. It fetches the latest currency exchange rates from a public API and displays the results in both tabular and graphical formats.
 
