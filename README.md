@@ -1,97 +1,151 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-<a id="readme-top"></a>
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/your_username/repo_name">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
-  <h3 align="center">Currency Converter</h3>
-
-  <p align="center">
-    A simple currency converter using Python and Tkinter.
-    <br />
-    <a href="https://github.com/your_username/repo_name"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/your_username/repo_name">View Demo</a>
-    ·
-    <a href="https://github.com/your_username/repo_name/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    ·
-    <a href="https://github.com/your_username/repo_name/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
-  </p>
-</div>
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
 
 
-This project is a currency converter application built using Python and Tkinter. It fetches the latest currency exchange rates from a public API and displays the results in both tabular and graphical formats.
 
-Key features include:
-* Real-time currency conversion
-* Graphical representation of exchange rates
-* User-friendly interface built with Tkinter
+# Currency Converter
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+This is a simple currency converter application built with Python. It uses the `currencyapi` to fetch the latest exchange rates and displays the data using Tkinter for the GUI and Matplotlib for plotting the exchange rates.
 
-### Built With
+## Features
 
-* [![Python][Python.org]][Python-url]
-* [![Tkinter][Tkinter.org]][Tkinter-url]
-* [![Matplotlib][Matplotlib.org]][Matplotlib-url]
-* [![Pandas][Pandas.org]][Pandas-url]
+- Fetches latest currency exchange rates.
+- Supports multiple currencies (USD, CAD, EUR, AUD, TRY).
+- Displays exchange rates in a table.
+- Plots exchange rates using a bar chart.
+- Simple and user-friendly GUI.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+## Requirements
 
-<!-- GETTING STARTED -->
-## Getting Started
+- Python 3.x
+- `requests` library
+- `tkinter` library (usually included with Python installations)
+- `matplotlib` library
+- `pandas` library
 
-To get a local copy up and running follow these simple steps.
+You can install the required libraries using the following command:
 
-### Prerequisites
+```sh
+pip install requests matplotlib pandas
+```
 
-Ensure you have Python installed on your machine. You can download it from [Python.org](https://www.python.org/).
+## Usage
 
-### Installation
+1. Clone this repository:
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/your_username/repo_name.git
+```sh
+git clone https://github.com/your-username/currency-converter.git
+cd currency-converter
+```
+
+2. Run the application:
+
+```sh
+python currency.py
+```
+
+3. Enter the base currency (e.g., USD) in the input field and click "Submit". The application will display the exchange rates and plot them in a bar chart.
+
+## Code Explanation
+
+### Importing Libraries
+
+The application imports several libraries for different functionalities:
+
+```python
+import requests
+import tkinter as tk
+from tkinter import messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+```
+
+### Constants
+
+Some constants are defined to be used throughout the application:
+
+```python
+API_KEY = "your_api_key_here"
+BASE_URL = "https://api.currencyapi.com/v3/latest"
+CURRENCIES = ["USD", "CAD", "EUR", "AUD", "TRY"]
+```
+
+### `convert_currency` Function
+
+This function takes a base currency as input and fetches the latest exchange rates for the defined currencies:
+
+```python
+def convert_currency(base):
+    currencies = ",".join(CURRENCIES)
+    url = f"{BASE_URL}?apikey={API_KEY}&base_currency={base}&currencies={currencies}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        return data["data"]
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror("Error", f"HTTP Request failed: {e}")
+        return None
+```
+
+### `get_user_input` Function
+
+This function gets the user input from the Tkinter input field and processes it:
+
+```python
+def get_user_input():
+    base_currency = base_currency_entry.get().upper()
+    if not base_currency:
+        messagebox.showerror("Error", "Base currency cannot be empty.")
+        return
+    if base_currency == "Q":
+        root.quit()
+    else:
+        data = convert_currency(base_currency)
+        if data:
+            for widget in result_frame.winfo_children():
+                widget.destroy()
+                
+            df = pd.DataFrame.from_dict(data, orient='index')
+            df = df[['value']]
+            df.columns = ['Exchange Rate']
+
+            table_label = tk.Label(result_frame, text=df.to_string())
+            table_label.pack()
+
+            figure = Figure(figsize=(6, 4), dpi=100)
+            ax = figure.add_subplot(111)
+            df.plot(kind='bar', ax=ax)
+            ax.set_title(f'Exchange Rates for {base_currency}')
+            ax.set_ylabel('Exchange Rate')
+            canvas = FigureCanvasTkAgg(figure, result_frame)
+            canvas.get_tk_widget().pack()
+```
+
+### Tkinter GUI Setup
+
+The Tkinter GUI is set up with labels, input fields, and buttons:
+
+```python
+root = tk.Tk()
+root.title("Currency Converter")
+
+tk.Label(root, text="Please enter the base currency (e.g. USD):").pack()
+base_currency_entry = tk.Entry(root)
+base_currency_entry.pack()
+
+submit_button = tk.Button(root, text="Submit", command=get_user_input)
+submit_button.pack()
+
+result_frame = tk.Frame(root)
+result_frame.pack()
+
+root.mainloop()
+```
+
+## License
+
+This project is licensed under the MIT License.
+
+```
+
+You can customize this README file further based on your specific needs and additional details of your project.
